@@ -39,7 +39,7 @@ namespace TouhouCV
 
         public void Load()
         {
-            string proc = "th10e";
+            string proc = "th10";
             _capture = new DXHook();
             _capture.AttachProcess(proc);
             _imgPower = new Image<Gray, byte>(Resources.Power);
@@ -145,44 +145,6 @@ namespace TouhouCV
                 // Look for power
                 process.ROI = powerDetectionROI;
                 
-                using (Image<Gray, float> result = process.MatchTemplate(_imgPower, TemplateMatchingType.SqdiffNormed))
-                {
-                    double minDistSq = double.MaxValue;
-                    int minX = 0, minY = 0;
-                    for (int y = 0; y < result.Height; y++)
-                    {
-                        for (int x = 0; x < result.Width; x++)
-                        {
-                            if (result.Data[y, x, 0] < 0.20)
-                            {
-                                double dist =
-                                    (x - _playerPos.X) * (x - _playerPos.X) +
-                                    (y - _playerPos.Y) * (y - _playerPos.Y);
-                                if (dist < minDistSq)
-                                {
-                                    minDistSq = dist;
-                                    minX = x;
-                                    minY = y;
-                                }
-                            }
-                        }
-                    }
-                    if (minDistSq != double.MaxValue)
-                    {
-                        Rectangle match = new Rectangle(minX + process.ROI.X, minY + process.ROI.Y, _imgPower.Width,
-                            _imgPower.Height);
-                        if (DO_DRAWING)
-                        {
-                            Screen.Draw(match, new Bgra(0, 255, 255, 255), 2);
-                            Screen.Draw(new LineSegment2DF(match.Location, _playerPos), new Bgra(0, 255, 255, 255), 1);
-                        }
-                        Vec2 acc = Vec2.CalculateForce(
-                            new Vec2(match.X + _imgPower.Width / 2.0, match.Y + _imgPower.Height / 2.0),
-                            new Vec2(_playerPos.X, _playerPos.Y), 4000);
-                        _force += acc;
-                    }
-                }
-
                 // Processing bounding box
                 Rectangle bulletDetectionROI = new Rectangle(
                     (int)Math.Max(_playerPos.X - INITIAL_DETECTION_RADIUS, 0),
